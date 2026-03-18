@@ -1,8 +1,6 @@
 # colored matrices for the paper
 
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-
-source("D:\\Dropbox\\students\\Daniel Rodan\\plot_colored_matrix.R")
+source("plot_colored_matrix.R")
 
 # use these colors for color-blind accessibility
 col_plus  <- "#009E73"
