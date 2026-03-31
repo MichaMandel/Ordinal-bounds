@@ -7,27 +7,124 @@ col_plus  <- "#009E73"
 col_minus <- "#D55E00"
 col_maybe <- "#F0E442"
 
-# define tau and eta
+# define tau and eta on the same plot
+#K <- 6
+#cells <- expand.grid(x = 1:K, y = 1:K)
+#diag_cells <- subset(cells, x == y)
+#ul_cells <- subset(cells, y > x)
+#
+#cairo_pdf("figures/eta_tau.pdf", width = 4, height = 4)
+#  plot_colored_matrix(
+#    K = 6,
+#    sets = list(
+#      list(x = diag_cells$x, y = diag_cells$y, col = col_maybe),
+#      list(x = ul_cells$x, y = ul_cells$y, col = col_plus)
+#    ),
+#    main = NULL,
+#    xlab = expression(italic(Y)^{(0)}),
+#    ylab = expression(italic(Y)^{(1)}),
+#  )
+#dev.off()
+
+
+# define tau 
 K <- 6
 cells <- expand.grid(x = 1:K, y = 1:K)
-diag_cells <- subset(cells, x == y)
+ul_cells <- subset(cells, y >= x)
+
+cairo_pdf("figures/tau.pdf", width = 4, height = 4)
+plot_colored_matrix(
+  K = 6,
+  sets = list(
+    list(x = ul_cells$x, y = ul_cells$y, col = col_plus)
+  ),
+  main = NULL,
+  xlab = expression(italic(Y)^{(0)}),
+  ylab = expression(italic(Y)^{(1)}),
+)
+dev.off()
+
+# define eta
+K <- 6
+cells <- expand.grid(x = 1:K, y = 1:K)
 ul_cells <- subset(cells, y > x)
 
-cairo_pdf("figures/eta_tau.pdf", width = 4, height = 4)
-  plot_colored_matrix(
-    K = 6,
-    sets = list(
-      list(x = diag_cells$x, y = diag_cells$y, col = col_maybe),
-      list(x = ul_cells$x, y = ul_cells$y, col = col_plus)
-    ),
-    main = NULL,
-    xlab = expression(italic(Y)^{(0)}),
-    ylab = expression(italic(Y)^{(1)}),
-  )
+cairo_pdf("figures/eta.pdf", width = 4, height = 4)
+plot_colored_matrix(
+  K = 6,
+  sets = list(
+    list(x = ul_cells$x, y = ul_cells$y, col = col_plus)
+  ),
+  main = NULL,
+  xlab = expression(italic(Y)^{(0)}),
+  ylab = expression(italic(Y)^{(1)}),
+)
 dev.off()
 
 
-# an example of \Delta_j
+# P(Y(0)>=j) for j=3
+K <- 6
+cells <- expand.grid(x = 1:K, y = 1:K)
+pos.mass <- subset(cells, (x >= 3))
+
+cairo_pdf("figures/surv0.pdf", width = 4, height = 4)
+plot_colored_matrix(
+  K = 6,
+  sets = list(
+    list(x = pos.mass$x, y = pos.mass$y, col = col_plus)
+  ),
+  main = NULL,
+  xlab = expression(italic(Y)^{(0)}),
+  ylab = expression(italic(Y)^{(1)}),
+)
+labs <- as.expression(
+  lapply(seq_len(nrow(cells)), function(k) {
+    bquote(italic(p)[.(cells$x[k]) * "," * .(cells$y[k])])
+  })
+)
+
+text(
+  cells$x - 0.5,
+  cells$y - 0.5,
+  labels = labs,
+  cex = 0.85,
+  xpd = NA
+)
+dev.off()
+
+
+# P(Y(1)>=j) for j=3
+K <- 6
+cells <- expand.grid(x = 1:K, y = 1:K)
+pos.mass <- subset(cells, (y >= 3))
+
+cairo_pdf("figures/surv1.pdf", width = 4, height = 4)
+plot_colored_matrix(
+  K = 6,
+  sets = list(
+    list(x = pos.mass$x, y = pos.mass$y, col = col_plus)
+  ),
+  main = NULL,
+  xlab = expression(italic(Y)^{(0)}),
+  ylab = expression(italic(Y)^{(1)}),
+)
+labs <- as.expression(
+  lapply(seq_len(nrow(cells)), function(k) {
+    bquote(italic(p)[.(cells$x[k]) * "," * .(cells$y[k])])
+  })
+)
+
+text(
+  cells$x - 0.5,
+  cells$y - 0.5,
+  labels = labs,
+  cex = 0.85,
+  xpd = NA
+)
+dev.off()
+
+
+# an example of \Delta_j for j=3
 K <- 6
 cells <- expand.grid(x = 1:K, y = 1:K)
 pos.mass <- subset(cells, (x < 3 & y >= 3))
@@ -43,6 +140,19 @@ plot_colored_matrix(
   main = NULL,
   xlab = expression(italic(Y)^{(0)}),
   ylab = expression(italic(Y)^{(1)}),
+)
+labs <- as.expression(
+  lapply(seq_len(nrow(cells)), function(k) {
+    bquote(italic(p)[.(cells$x[k]) * "," * .(cells$y[k])])
+  })
+)
+
+text(
+  cells$x - 0.5,
+  cells$y - 0.5,
+  labels = labs,
+  cex = 0.85,
+  xpd = NA
 )
 dev.off()
 
@@ -204,5 +314,4 @@ plot_colored_matrix(
   ylab = expression(italic(Y)^{(1)}),
 )
 dev.off()
-
 
