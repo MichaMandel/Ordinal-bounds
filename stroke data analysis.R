@@ -60,3 +60,21 @@ eta_I
 w = (marginal.ctrl[1:5]+marginal.trt[1:5])/2
 w <- w/sum(w)
 sum(w[1:5]*Delta[1:5])
+
+# Using the function for lower bounds
+source("improved lower bounds")
+
+# (levels in reversed order: from worse to best)
+
+#Model-free bounds 
+improved_bounds(y0=ctrl[6:1], y1=trt[6:1], D_ot = integer(0), D_ct = integer(0), tol = 1e-8)
+
+# assuming local DTD at 5 and 6
+improved_bounds(y0=ctrl[6:1], y1=trt[6:1], D_ot = c(5,6), D_ct = c(5,6), tol = 1e-8)
+
+# assuming local DTD at 4, 5 and 6
+improved_bounds(y0=ctrl[6:1], y1=trt[6:1], D_ot = 4:6, D_ct = 4:6, tol = 1e-8)
+
+# independence bounds
+improved_bounds(y0=ctrl[6:1], y1=trt[6:1], D_ot = 1:6, D_ct = 1:6, tol = 1e-8)
+
