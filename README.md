@@ -21,7 +21,7 @@ This project:
 
 ## Files
 
-- generate colored matrix.R  
+- generate colored matrix w title.R  
   Scripts for generating figures using colored matrices
 
 - plot_colored_matrix.R  
