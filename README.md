@@ -22,24 +22,31 @@ This project:
 ## Files
 
 - analyze_ordinal_joint.R
+  
   Calculates functional from a joint probability matrix
   
 - analyze_ordinal_marginals.R
+  
   Computes bounds from marginal distributions
   
 - generate_colored_matrix_w_title.R
+  
   Generates colored matrix of different estimands and bounds
   
 - joint_gaussian_copula.R
+  
   Generates an ordinal gussian copula for given marginals and \rho
   
 - latex_joint_independence_table.R
+  
   Generates LaTeX tables for joint and independence distributions
 
 - stroke data analysis.R
+  
 Analysis of stroke trial data (modified Rankin scale)
 
 - tables for ordinal bounds.R
+  
 Example matrices and numerical illustrations
 
 
