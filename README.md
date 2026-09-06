@@ -17,7 +17,7 @@ This project:
 - Computes independence-based bounds
 - Introduces and studies diagonal tail dominance (DTD)
 - Provides visualization tools using colored matrices
-- Demonstrates results on simulated and real data
+- Demonstrates results on theoretical and real data
 
 ## Files
 
