@@ -24,57 +24,211 @@
 #     mechanical thrombectomy, or both.
 # control - standard treatment (medication, maybe using IV)
 
-# Data from Table S5 of the supplemantery appendix
+# Data from Table S5 of the supplementary appendix
 # combine 0 and 1  because of small n's
 score <- 1:6
 trt <- c(27,49,43,52,13,49)
 ctrl <- c(16,35,44,81,32,59)
-P.trt <- cumsum(trt)/sum(trt)
-P.ctrl <- cumsum(ctrl)/sum(ctrl)
-marginal.trt <- trt/sum(trt)
-marginal.ctrl <- ctrl/sum(ctrl)
-Delta <- P.trt-P.ctrl
-round(rbind(score,trt,ctrl,marginal.trt,marginal.ctrl,
-            P.trt,P.ctrl,Delta),3)
-tau_L = max(marginal.ctrl+Delta)
-tau_U = 1 + min(Delta)
-eta_L = max(Delta)
-eta_U = 1+min(Delta-marginal.trt)
-round(cbind(tau_L,tau_U,eta_L,eta_U),3)
+
+# reverse the order so larger index = better outcome
+trt.ord <- trt[6:1]
+ctrl.ord <- ctrl[6:1]
+
+# call the function for the analysis
+source("analyze_ordinal_marginals.R")
+
+p.trt <- trt.ord/sum(trt.ord)
+p.ctrl <- ctrl.ord/sum(ctrl.ord)
+
+res <- analyze_ordinal_marginals(p1 = p.trt , 
+                                 p0 = p.ctrl)
+
+round(p.trt,3)
+round(p.ctrl,3)
+round(res$marginals$p1_ge,3)
+round(res$marginals$p0_ge,3)
+round(res$marginals$Delta,3)
+
+round(res$unrestricted_bounds$eta,3)
+round(res$unrestricted_bounds$tau,3)
+round(res$independence,3)
+
+res$local_DTD_bounds
+
+# table for the latex file 
+
+tab <- res$local_DTD_bounds[
+  ,
+  c(
+    "assume_DTD_for",
+    "eta_lower_open",
+    "eta_upper_closed",
+    "tau_lower_closed",
+    "tau_upper_open"
+  )
+]
+
+latex_tab <- knitr::kable(
+  tab,
+  format = "latex",
+  digits = 3,
+  booktabs = TRUE,
+  escape = FALSE,
+  col.names = c(
+    "DTD set$^{*}$",
+    "$\\tilde{\\eta}_L$",
+    "$\\tilde{\\eta}_U$",
+    "$\\tilde{\\tau}_L$",
+    "$\\tilde{\\tau}_U$"
+  )
+)
+
+latex_tab <- gsub("\\\\addlinespace\\n?", "", latex_tab)
+
+cat(
+  "\\begin{table}[ht]\n",
+  "\\centering\n",
+  latex_tab,
+  "\n\\begin{minipage}{0.95\\textwidth}\n",
+  "\\footnotesize\n",
+  "$^{*}$ The indicated set is assumed to satisfy closed-tail DTD for ",
+  "$\\tilde{\\tau}_L$ and $\\tilde{\\eta}_U$, and open-tail DTD for ",
+  "$\\tilde{\\eta}_L$ and $\\tilde{\\tau}_U$.\n",
+  "\\end{minipage}\n",
+  "\\caption{Bounds under local DTD assumptions.}\n",
+  "\\label{tab:local_DTD}\n",
+  "\\end{table}\n",
+  sep = ""
+)
+######################################################
+#
+#           SENSITIVITY ANALYSIS
+#
+####################################################
+
+# call the function for the sensitivity analysis
+source("analyze_ordinal_joint.R")
+source("joint_gaussian_copula.R")
+
+rho = 0.3
+P.sens <- joint_gaussian_copula(p1 = p.trt,
+                                p0 = p.ctrl,
+                                rho = rho)
+res.joint <- analyze_ordinal_joint(P.sens)
+
+# check that we get the same results for bounds
+
+round(res.joint$marginals$p1,3)
+round(res.joint$marginals$p0,3)
+round(res.joint$marginals$Delta,3)
+
+round(res.joint$unrestricted_bounds$eta,3)
+round(res.joint$unrestricted_bounds$tau,3)
+round(res.joint$independence,3)
+
+res.joint$local_DTD_lower_bounds
+
+# run the analysis for a sequence of rho values
+rhos <- round(seq(-0.9, 0.9, by = 0.1), 1)
+
+results <- lapply(rhos, function(rho) {
+  P <- joint_gaussian_copula(p.trt, p.ctrl, rho)
+  res <- analyze_ordinal_joint(P)
+  res$rho <- rho
+  res
+})
+
+names(results) <- sprintf("rho_%+.1f", rhos)
 
 
-# bounds under independence 
-joint = (outer(marginal.trt,marginal.ctrl,"*"))
-tau_I = 0
-eta_I = 0
-for (i in 1:6) {
-  for (j in i:6) {
-    tau_I = tau_I + joint[i,j]
-    if (j>i) {eta_I = eta_I + joint[i,j]}
-  }
-}
-tau_I
-eta_I
+# plotting eta and tau vs the lower bounds
 
-# the weighted effect with w the average of the probabilities
-w = (marginal.ctrl[1:5]+marginal.trt[1:5])/2
-w <- w/sum(w)
-sum(w[1:5]*Delta[1:5])
+library(ggplot2)
 
-# Using the function for lower bounds
-source("improved lower bounds")
+# Extract estimands across rho
+plot_df <- data.frame(
+  rho = rhos,
+  eta = sapply(results, function(x) x$estimands["eta"]),
+  tau = sapply(results, function(x) x$estimands["tau"])
+)
 
-# (levels in reversed order: from worse to best)
+# Bounds depend only on the marginals, so take them from one result
+eta_bounds <- results[[1]]$local_DTD_lower_bounds$eta_open
+tau_bounds <- results[[1]]$local_DTD_lower_bounds$tau_closed
 
-#Model-free bounds 
-improved_bounds(y0=ctrl[6:1], y1=trt[6:1], D_ot = integer(0), D_ct = integer(0), tol = 1e-8)
 
-# assuming local DTD at 5 and 6
-improved_bounds(y0=ctrl[6:1], y1=trt[6:1], D_ot = c(5,6), D_ct = c(5,6), tol = 1e-8)
+p_eta <- ggplot(plot_df, aes(x = rho, y = eta)) +
+  geom_hline(yintercept = eta_bounds, linetype = "dashed",
+             linewidth = 0.4) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 2) +
+  scale_x_continuous(
+    breaks = seq(-0.9, 0.9, by = 0.3),
+    labels = function(x) sprintf("%.1f", x)
+  ) +
+  scale_y_continuous(
+    limits = c(0, 1),
+    breaks = seq(0, 1, by = 0.1)
+  ) +
+  labs(
+    x = expression(rho),
+    y = expression(eta)
+  ) +
+  theme_classic(base_size = 12)
 
-# assuming local DTD at 4, 5 and 6
-improved_bounds(y0=ctrl[6:1], y1=trt[6:1], D_ot = 4:6, D_ct = 4:6, tol = 1e-8)
+p_eta
 
-# independence bounds
-improved_bounds(y0=ctrl[6:1], y1=trt[6:1], D_ot = 1:6, D_ct = 1:6, tol = 1e-8)
 
+p_tau <- ggplot(plot_df, aes(x = rho, y = tau)) +
+  geom_hline(yintercept = tau_bounds, linetype = "dashed",
+             linewidth = 0.4) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 2) +
+  scale_x_continuous(
+    breaks = seq(-0.9, 0.9, by = 0.3),
+    labels = function(x) sprintf("%.1f", x)
+  ) +
+  scale_y_continuous(
+    limits = c(0, 1),
+    breaks = seq(0, 1, by = 0.1)
+  ) +
+  labs(
+    x = expression(rho),
+    y = expression(tau)
+  ) +
+  theme_classic(base_size = 12)
+
+p_tau
+
+
+ggsave(
+  filename = file.path("figures", "eta_gaussian_copula.pdf"),
+  plot = p_eta,
+  width = 6,
+  height = 4.5
+)
+
+ggsave(
+  filename = file.path("figures", "tau_gaussian_copula.pdf"),
+  plot = p_tau,
+  width = 6,
+  height = 4.5
+)
+
+#####################################
+#####################################
+# indices for which local DTD holds
+
+DTD_table <- data.frame(
+  rho = rhos,
+  open_DTD = sapply(
+    results,
+    function(x) paste(x$DTD$open_indices, collapse = ",")
+  ),
+  closed_DTD = sapply(
+    results,
+    function(x) paste(x$DTD$closed_indices, collapse = ",")
+  )
+)
+
+DTD_table
