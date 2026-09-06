@@ -43,10 +43,10 @@ This project:
 
 - stroke data analysis.R
   
-Analysis of stroke trial data (modified Rankin scale)
+  Analysis of stroke trial data (modified Rankin scale)
 
 - tables for ordinal bounds.R
   
-Example matrices and numerical illustrations
+  Example matrices and numerical illustrations
 
 
