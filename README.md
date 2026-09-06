@@ -21,36 +21,25 @@ This project:
 
 ## Files
 
-- generate colored matrix w title.R  
-  Scripts for generating figures using colored matrices
-
-- plot_colored_matrix.R  
-  Function for plotting colored K×K matrices
-
-- latex_joint_independence_table.R  
+- analyze_ordinal_joint.R
+  Calculates functional from a joint probability matrix
+  
+- analyze_ordinal_marginals.R
+  Computes bounds from marginal distributions
+  
+- generate_colored_matrix_w_title.R
+  Generates colored matrix of different estimands and bounds
+  
+- joint_gaussian_copula.R
+  Generates an ordinal gussian copula for given marginals and \rho
+  
+- latex_joint_independence_table.R
   Generates LaTeX tables for joint and independence distributions
 
-- ordinal_effect_measures.R  
-  Computes η, τ and their independence counterparts
+- stroke data analysis.R
+Analysis of stroke trial data (modified Rankin scale)
 
-- tables for ordinal bounds.R  
-  Example matrices and numerical illustrations
+- tables for ordinal bounds.R
+Example matrices and numerical illustrations
 
-- stroke data analysis.R  
-  Analysis of stroke trial data (modified Rankin scale)
 
-## Usage
-
-### Compute causal estimands
-
-```r
-source("ordinal_effect_measures.R")
-
-mat <- matrix(
-  c(0.02, 0.04, 0.06,
-    0.09, 0.07, 0.48,
-    0.03, 0.02, 0.19),
-  nrow = 3, byrow = TRUE
-)
-
-ordinal_effect_measures(mat)
